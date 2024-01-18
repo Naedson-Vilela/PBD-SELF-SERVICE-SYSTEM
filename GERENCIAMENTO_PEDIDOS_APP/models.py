@@ -34,7 +34,7 @@ class Categoria(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        return f'{self.id}'
+        return f'{self.nome_categoria}'
 
 class Produto(models.Model):
 
@@ -51,7 +51,7 @@ class Produto(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        return f'{self.id}'
+        return f'{self.nome_produto}'
 
 class Pedido(models.Model):
 
