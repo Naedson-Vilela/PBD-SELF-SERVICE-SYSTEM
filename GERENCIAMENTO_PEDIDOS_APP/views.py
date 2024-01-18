@@ -65,8 +65,38 @@ def produto_detail(request, pk):
         produto.delete()
         return HttpResponse(status=204)
 
+@api_view(['GET', 'POST'])
+def mesa_list_create(request):
+    if request.method == 'GET':
+        mesas = Mesa.objects.all()
+        mesa_serializer = MesaSerializer(mesas, many=True)
+
+        return JsonResponse(mesa_serializer.data, safe=False)
+
+    if request.method == 'POST':
+        data = request.data
+        mesa_serializer = MesaSerializer(data=data)
+        if mesa_serializer.is_valid():
+            mesa_serializer.save()
+            return JsonResponse(mesa_serializer.data, status=201)
+        return HttpResponse(mesa_serializer.errors, status=400)
 
 
+@api_view(['GET', 'DELETE', 'PUT'])
+def mesa_detail(request, pk):
+    mesa = get_object_or_404(Mesa, pk=pk)
 
+    if request.method == 'GET':
+        mesa_serializer = MesaSerializer(mesa)
+        return JsonResponse(mesa_serializer.data)
+    if request.method == 'PUT':
+        mesa_nova = request.data
+        mesa_nova_serializer = MesaSerializer(mesa, data=mesa_nova)
+        if mesa_nova_serializer.is_valid():
+            mesa_nova_serializer.save()
+            return JsonResponse(mesa_nova_serializer.data, status=200)
+    if request.method == 'DELETE':
+        mesa.delete()
+        return HttpResponse(status=204)
 
 
