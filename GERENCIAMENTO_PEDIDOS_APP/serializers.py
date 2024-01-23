@@ -23,15 +23,14 @@ class ProdutoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PedidoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Pedido
-        fields = '__all__'
-
-
 class ProdutoPedidoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Produto_pedido
+        fields = '__all__'
+
+class PedidoSerializer(serializers.ModelSerializer):
+    produtos_pedidos = ProdutoPedidoSerializer(many=True, read_only=True)
+    class Meta:
+        model = Pedido
         fields = '__all__'

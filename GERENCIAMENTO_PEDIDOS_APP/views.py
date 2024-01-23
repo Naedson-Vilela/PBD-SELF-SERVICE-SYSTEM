@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from .models import *
 from .serializers import *
@@ -99,4 +100,39 @@ def mesa_detail(request, pk):
         mesa.delete()
         return HttpResponse(status=204)
 
+
+@api_view(['POST'])
+def produto_pedido_create(request, pk):
+
+    data = request.data
+    produto_pedido_serializer = ProdutoPedidoSerializer(data=data)
+    if produto_pedido_serializer.is_valid():
+        produto_pedido_serializer.save()
+        return JsonResponse(produto_pedido_serializer.data, status=status.HTTP_201_CREATED)
+    return HttpResponse(produto_pedido_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'POST'])
+def pedido_list_create(request):
+
+    if request.method == 'GET':
+        pedidos = Pedido.objects.all()
+        pedido_serializer = PedidoSerializer(pedidos, many=True)
+        return JsonResponse(pedido_serializer.data, safe=False)
+
+    elif request.method == 'POST':
+        data = request.data
+        pedido = PedidoSerializer(data=data)
+        if pedido.is_valid():
+            pedido.save()
+            return JsonResponse(pedido.data, status=201)
+        return HttpResponse(pedido.errors, status=400)
+
+@api_view(['GET'])
+def pedido_detail(request, pk):
+
+    pedido = Pedido.objects.get(pk=pk)
+
+    pedido_serializer = PedidoSerializer(pedido)
+
+    return JsonResponse(pedido_serializer.data, safe=False)
 
