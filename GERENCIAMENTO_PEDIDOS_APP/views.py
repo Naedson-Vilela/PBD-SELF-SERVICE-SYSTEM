@@ -105,7 +105,7 @@ def mesa_detail(request, pk):
 def produto_pedido_create(request, pk):
 
     data = request.data
-    produto_pedido_serializer = ProdutoPedidoSerializer(data=data)
+    produto_pedido_serializer = ProdutoQuantidadeSerializer(data=data)
     if produto_pedido_serializer.is_valid():
         produto_pedido_serializer.save()
         return JsonResponse(produto_pedido_serializer.data, status=status.HTTP_201_CREATED)
@@ -119,20 +119,45 @@ def pedido_list_create(request):
         pedido_serializer = PedidoSerializer(pedidos, many=True)
         return JsonResponse(pedido_serializer.data, safe=False)
 
+    # elif request.method == 'POST':
+    #     data = request.data
+    #     produto_quatidade = data.get("produto_quantidade")
+    #     data.pop("produto_quantidade")
+    #     pedido = PedidoSerializer(data=data)
+    #     if pedido.is_valid():
+    #         for produto in produto_quatidade:
+    #             produto_current = ProdutoQuantidadeSerializer(data=produto)
+    #             if produto_current.is_valid():
+    #                 produto_current.save()
+    #                 pedido.produtos_quantidades.add(produto_quatidade)
+    #         pedido.save()
+    #         return JsonResponse(pedido.data, safe=False, status=status.HTTP_201_CREATED)
+    #     return HttpResponse(pedido.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif request.method == 'POST':
         data = request.data
+        produto_quatidade = data.get("produto_quantidade")
+        data.pop("produto_quantidade")
         pedido = PedidoSerializer(data=data)
         if pedido.is_valid():
+            for produto in produto_quatidade:
+                produto_current = ProdutoQuantidadeSerializer(data=produto)
+                if produto_current.is_valid():
+                    produto_current.save()
+                    pedido.produtos_quantidades.add(produto_quatidade)
             pedido.save()
-            return JsonResponse(pedido.data, status=201)
-        return HttpResponse(pedido.errors, status=400)
+            return JsonResponse(pedido.data, safe=False, status=status.HTTP_201_CREATED)
+        return HttpResponse(pedido.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 def pedido_detail(request, pk):
 
     pedido = Pedido.objects.get(pk=pk)
-
     pedido_serializer = PedidoSerializer(pedido)
+    json_response = pedido_serializer.data
+    produtos_quantidades = Pedido.objects.filter(produtos_quantidades__pedido__id=pk)
+    produtos_quantidades = ProdutoQuantidadeSerializer(produtos_quantidades, many=True)
+    json_response['produtos_pedidos'] = [pedido_quantidade for pedido_quantidade in produtos_quantidades.data]
 
-    return JsonResponse(pedido_serializer.data, safe=False)
-
+    return JsonResponse(json_response, safe=False)

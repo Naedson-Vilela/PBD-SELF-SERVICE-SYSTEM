@@ -41,7 +41,6 @@ class Produto(models.Model):
     imagem = models.ImageField(blank=True)
     nome_produto = models.CharField(max_length=100)
     categoria_id = models.ForeignKey(Categoria, related_name='produtos', on_delete=models.SET_NULL, null=True)
-    pedidos = models.ManyToManyField('Pedido', through='Produto_pedido')
     preco = models.FloatField()
     descricao = models.TextField(blank=True)
     is_cozinha = models.BooleanField(default=False)
@@ -55,10 +54,8 @@ class Produto(models.Model):
         return f'{self.nome_produto}'
 
 
+class ProdutoQuantidade(models.Model):
 
-class Produto_pedido(models.Model):
-
-    pedido_id = models.ForeignKey('Pedido', related_name='pedidos_produtos', on_delete=models.DO_NOTHING)
     produto_id = models.ForeignKey(Produto, related_name='produtos_pedidos', on_delete=models.DO_NOTHING)
     quantidade_produtos = models.IntegerField(blank=False, null=False)
 
@@ -69,7 +66,6 @@ class Produto_pedido(models.Model):
 
     def __str__(self):
         return f'{self.id}'
-
 
 class Pedido(models.Model):
     class StatusPedidoChoice(models.TextChoices):
@@ -82,6 +78,7 @@ class Pedido(models.Model):
         RECUSADO = 'RECUSADO', _('Recusado')
         PROBLEMA_PEDIDO = 'PROBLEMA_PEDIDO', _('Problema com pedido')
 
+    produtos_quantidades = models.ManyToManyField(ProdutoQuantidade, blank=True)
     mesa_id = models.ForeignKey(Mesa, related_name='pedidos', on_delete=models.DO_NOTHING)
     nome_cliente = models.CharField(max_length=50, blank=False)
     data_hora = models.DateTimeField(auto_now=True)
@@ -89,8 +86,6 @@ class Pedido(models.Model):
                                      choices=StatusPedidoChoice.choices,
                                      default=StatusPedidoChoice.REALIZADO)
 
-    def produtos_pedidos(self):
-        return Produto_pedido.objects.filter(pedido=self)
 
     class Meta:
         verbose_name = 'Pedido'
@@ -99,3 +94,5 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
