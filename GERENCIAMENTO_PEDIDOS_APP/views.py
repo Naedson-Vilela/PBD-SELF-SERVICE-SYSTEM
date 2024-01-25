@@ -136,9 +136,5 @@ def pedido_detail(request, pk):
 
     pedido = get_object_or_404(Pedido, pk=pk)
     pedido_serializer = PedidoSerializer(pedido)
-    json_response = pedido_serializer.data
-    produtos_quantidades = pedido.produtos_quantidades.all()
-    produtos_quantidades = ProdutoQuantidadeSerializer(produtos_quantidades, many=True)
-    json_response['produtos_quantidades'] = [pedido_quantidade for pedido_quantidade in produtos_quantidades.data]
 
-    return JsonResponse(json_response, safe=False)
+    return JsonResponse(pedido_serializer.data, safe=False)
