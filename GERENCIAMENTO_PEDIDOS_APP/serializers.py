@@ -29,6 +29,14 @@ class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
         model = ProdutoQuantidade
         fields = '__all__'
 
+
+class PedidoSerializer(serializers.ModelSerializer):
+    produtos_quantidades = ProdutoQuantidadeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Pedido
+        fields = '__all__'
+
 class PedidoSerializer(serializers.ModelSerializer):
 
     produtos_quantidades = ProdutoQuantidadeSerializer(many=True, read_only=True)
@@ -36,3 +44,12 @@ class PedidoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pedido
         fields = '__all__'
+
+    def criar_pedido_produtos_quantidades(self, pedido, produto_quantidade):
+        pedido['mesa_id'] = Mesa.objects.get(pk=pedido.get('mesa_id'))
+        pedido_object = Pedido.objects.create(**pedido)
+        for item in produto_quantidade:
+            item['produto_id'] = Produto.objects.get(pk=item.get('produto_id'))
+        pedidos_quantides = [ProdutoQuantidade.objects.create(**item) for item in produto_quantidade]
+        pedido_object.produtos_quantidades.set(pedidos_quantides)
+        return PedidoSerializer(pedido, read_only=True)

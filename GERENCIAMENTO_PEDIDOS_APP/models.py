@@ -87,6 +87,7 @@ class Pedido(models.Model):
                                      default=StatusPedidoChoice.REALIZADO)
 
 
+
     class Meta:
         verbose_name = 'Pedido'
         verbose_name_plural = 'Pedidos'
