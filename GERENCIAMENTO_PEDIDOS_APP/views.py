@@ -1,29 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
-from .models import *
-from .serializers import *
+from .models import (Pedido,
+                     ProdutoQuantidade,
+                     Mesa,
+                     Produto)
+from .serializers import (PedidoSerializer,
+                          ProdutoQuantidadeSerializer,
+                          MesaSerializer,
+                          ProdutoSerializer)
 
-class ProdutoApiView(generics.ListCreateAPIView):
-    queryset = Produto.objects.all()
-    serializer_class = ProdutoSerializer
-
-# @api_view(['POST'])
-# def ProdutoApiViewDjango(request):
-#
-#     object = request.data
-#
-#     Produto.objects.create(nome_produto=object.get('nome_produto'),
-#                            categoria_id=Categoria.objects.get(id=object.get('categoria_id')),
-#                            preco=object.get('preco'),
-#                            descricao=object.get('descricao'),
-#                            is_cozinha=object.get('is_cozinha')
-#                            )
-#
-#     return HttpResponse(request.data)
 
 @api_view(['GET', 'POST'])
 def produto_list_create(request):
@@ -48,8 +35,6 @@ def produto_detail(request, pk):
 
     produto = get_object_or_404(Produto, pk=pk)
 
-
-
     if request.method == 'GET':
         produto_serializer = ProdutoSerializer(produto)
         return JsonResponse(produto_serializer.data)
@@ -65,6 +50,7 @@ def produto_detail(request, pk):
     elif request.method == 'DELETE':
         produto.delete()
         return HttpResponse(status=204)
+
 
 @api_view(['GET', 'POST'])
 def mesa_list_create(request):
@@ -101,16 +87,6 @@ def mesa_detail(request, pk):
         return HttpResponse(status=204)
 
 
-@api_view(['POST'])
-def produto_pedido_create(request, pk):
-
-    data = request.data
-    produto_pedido_serializer = ProdutoQuantidadeSerializer(data=data)
-    if produto_pedido_serializer.is_valid():
-        produto_pedido_serializer.save()
-        return JsonResponse(produto_pedido_serializer.data, status=status.HTTP_201_CREATED)
-    return HttpResponse(produto_pedido_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['GET', 'POST'])
 def pedido_list_create(request):
 
@@ -131,10 +107,35 @@ def pedido_list_create(request):
         return HttpResponse(pedido_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE', 'PUT'])
 def pedido_detail(request, pk):
-
     pedido = get_object_or_404(Pedido, pk=pk)
-    pedido_serializer = PedidoSerializer(pedido)
 
-    return JsonResponse(pedido_serializer.data, safe=False)
+    if request.method == 'GET':
+        pedido_serializer = PedidoSerializer(pedido, read_only=True)
+        return JsonResponse(pedido_serializer.data, safe=False)
+
+    elif request.method == 'PUT':
+        pedido_novo = request.data.copy()
+        pedido_novo.pop('produtos_quantidades')
+        pedido_serializer = PedidoSerializer(pedido, pedido_novo)
+        pedido_serializer.is_valid(raise_exception=True)
+        if request.data.get('produtos_quantidades'):
+            produtos_quantidades = [ProdutoQuantidadeSerializer(data=item) for item in request.data['produtos_quantidades']]
+            flag = all([item.is_valid() for item in produtos_quantidades])
+            if flag:
+                for item in request.data['produtos_quantidades']:
+                    produto_quantidade = get_object_or_404(ProdutoQuantidade, pk=item['id'])
+                    produto_quantidade_serializer = ProdutoQuantidadeSerializer(produto_quantidade, item)
+                    produto_quantidade_serializer.is_valid(raise_exception=True)
+                    produto_quantidade_serializer.save()
+                pedido_serializer.save()
+                return JsonResponse(pedido_serializer.data, safe=False)
+            erros = ProdutoQuantidadeSerializer.combine_serializer_errors(produtos_quantidades)
+            return JsonResponse({'erros': erros}, status=status.HTTP_400_BAD_REQUEST)
+        pedido_serializer.save()
+        return JsonResponse(pedido_serializer.data, safe=False, status=status.HTTP_200_OK)
+
+    elif request.method == 'DELETE':
+        pedido.delete()
+        return HttpResponse(status=status.HTTP_200_OK)
