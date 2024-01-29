@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status, response, schemas
+from rest_framework.decorators import api_view, renderer_classes
+from utils import SerializerUtils
 from .models import (Pedido,
                      ProdutoQuantidade,
                      Mesa,
@@ -11,6 +12,7 @@ from .serializers import (PedidoSerializer,
                           MesaSerializer,
                           ProdutoSerializer)
 
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 @api_view(['GET', 'POST'])
 def produto_list_create(request):
@@ -116,26 +118,48 @@ def pedido_detail(request, pk):
         return JsonResponse(pedido_serializer.data, safe=False)
 
     elif request.method == 'PUT':
-        pedido_novo = request.data.copy()
-        pedido_novo.pop('produtos_quantidades')
-        pedido_serializer = PedidoSerializer(pedido, pedido_novo)
-        pedido_serializer.is_valid(raise_exception=True)
-        if request.data.get('produtos_quantidades'):
-            produtos_quantidades = [ProdutoQuantidadeSerializer(data=item) for item in request.data['produtos_quantidades']]
-            flag = all([item.is_valid() for item in produtos_quantidades])
-            if flag:
-                for item in request.data['produtos_quantidades']:
-                    produto_quantidade = get_object_or_404(ProdutoQuantidade, pk=item['id'])
-                    produto_quantidade_serializer = ProdutoQuantidadeSerializer(produto_quantidade, item)
-                    produto_quantidade_serializer.is_valid(raise_exception=True)
-                    produto_quantidade_serializer.save()
+        try:
+            pedido_novo = request.data.copy()
+            pedido_novo.pop('produtos_quantidades')
+            pedido_serializer = PedidoSerializer(pedido, pedido_novo, partial=True)
+            if pedido_serializer.is_valid():
+                if request.data.get('produtos_quantidades'):
+                    produtos_quantidades = [ProdutoQuantidadeSerializer(data=item) for item in request.data['produtos_quantidades']]
+                    flag = all([item.is_valid() for item in produtos_quantidades])
+                    if flag:
+                        for item in request.data['produtos_quantidades']:
+                            produto_quantidade = get_object_or_404(ProdutoQuantidade, pk=item['id'])
+                            produto_quantidade_serializer = ProdutoQuantidadeSerializer(produto_quantidade, item)
+                            produto_quantidade_serializer.is_valid(raise_exception=True)
+                            produto_quantidade_serializer.save()
+                        pedido_serializer.save()
+                        return JsonResponse(pedido_serializer.data, safe=False)
+                    erros = SerializerUtils.combine_serializer_errors(produtos_quantidades)
+                    return JsonResponse({'erros': erros}, status=status.HTTP_400_BAD_REQUEST)
                 pedido_serializer.save()
-                return JsonResponse(pedido_serializer.data, safe=False)
-            erros = ProdutoQuantidadeSerializer.combine_serializer_errors(produtos_quantidades)
-            return JsonResponse({'erros': erros}, status=status.HTTP_400_BAD_REQUEST)
-        pedido_serializer.save()
-        return JsonResponse(pedido_serializer.data, safe=False, status=status.HTTP_200_OK)
+                return JsonResponse(pedido_serializer.data, safe=False, status=status.HTTP_200_OK)
+        except:
+            return JsonResponse({'erro': 'JSON INVÁLIDO'}, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         pedido.delete()
         return HttpResponse(status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'PUT'])
+def atualizer_produto_quantidades(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    if request.method == 'GET':
+        produto_quantidades = ProdutoQuantidade.objects.filter(pedido=pedido)
+        serializer = ProdutoQuantidadeSerializer(produto_quantidades, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == 'PUT':
+        produto_quantidade = [ProdutoQuantidade.objects.get(pk=pk['id']) for pk in request.data]
+        validate, serializer = ProdutoQuantidadeSerializer.update_many_produto_quantidade(produto_quantidade, request.data)
+        if validate:
+            return JsonResponse({'produto-quntidade': serializer}, safe=False, status=status.HTTP_200_OK)
+        return JsonResponse(SerializerUtils.combine_serializer_errors(serializer.errors), safe=False, status=status)
+
+
+

@@ -31,14 +31,25 @@ class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     @staticmethod
-    def combine_serializer_errors(list_serializers):
-        combined_errors = []
-        for serializer in list_serializers:
-            serializer.is_valid()
-            if serializer.errors:
-                combined_errors.append(serializer.errors)
-        return combined_errors
+    def __validate_produto_quantidade(quantidade):
+        serializers = [ProdutoQuantidadeSerializer(item) for item in quantidade]
+        validade = [item.is_valid() for item in serializers]
+        validate = True if all(validade) else False
+        return validate
 
+    @staticmethod
+    def update_many_produto_quantidade(produto_quantide, produto_quantidade_data):
+        serializers = [[item, data] for item, data in zip(produto_quantide, produto_quantidade_data)]
+        produto_quantidade_serializers = []
+        for item in serializers:
+            produto_quantidade_serializers.append(ProdutoQuantidadeSerializer(item[0], data=item[1], partial=True))
+
+        validate = [item.is_valid() for item in produto_quantidade_serializers]
+        if all(validate):
+            for item in produto_quantidade_serializers:
+                item.save()
+            return validate, [item[1] for item in serializers]
+        return validate, []
 
 class PedidoSerializer(serializers.ModelSerializer):
 

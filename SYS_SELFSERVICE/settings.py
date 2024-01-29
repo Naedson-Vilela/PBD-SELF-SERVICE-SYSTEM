@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'GERENCIAMENTO_PEDIDOS_APP',
-    
+    'drf_yasg',
+    'apps.GERENCIAMENTO_PEDIDOS_APP',
 ]
 
 MIDDLEWARE = [
