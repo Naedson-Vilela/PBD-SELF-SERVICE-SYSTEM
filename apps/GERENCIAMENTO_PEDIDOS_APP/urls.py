@@ -5,7 +5,8 @@ from .views import (produto_list_create,
                     mesa_detail,
                     pedido_list_create,
                     pedido_detail,
-                    atualizer_produto_quantidades,
+                    list_create_produto_quantidades,
+
                     )
 
 urlpatterns = [
@@ -15,5 +16,5 @@ urlpatterns = [
     path('mesa/<int:pk>/', mesa_detail, name='mesa_detail_api_view'),
     path('pedido/', pedido_list_create, name='pedido_list_create'),
     path('pedido/<int:pk>/', pedido_detail, name='pedido_detail'),
-    path('pedido/<int:pk>/produto-quantidade/', atualizer_produto_quantidades, name='create_produto_pedido'),
+    path('pedido/<int:pk>/produto-quantidade/', list_create_produto_quantidades, name='create_produto_pedido'),
 ]

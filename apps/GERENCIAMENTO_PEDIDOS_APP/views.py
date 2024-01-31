@@ -37,6 +37,12 @@ def produto_detail(request, pk):
 
     produto = get_object_or_404(Produto, pk=pk)
 
+    try:
+        produto = Produto.objects.get(pk=pk)
+    except:
+        return
+
+
     if request.method == 'GET':
         produto_serializer = ProdutoSerializer(produto)
         return JsonResponse(produto_serializer.data)
@@ -146,20 +152,32 @@ def pedido_detail(request, pk):
         return HttpResponse(status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'PUT'])
-def atualizer_produto_quantidades(request, pk):
+@api_view(['GET', 'POST'])
+def list_create_produto_quantidades(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
     if request.method == 'GET':
         produto_quantidades = ProdutoQuantidade.objects.filter(pedido=pedido)
         serializer = ProdutoQuantidadeSerializer(produto_quantidades, many=True)
         return JsonResponse(serializer.data, safe=False)
 
-    elif request.method == 'PUT':
+    elif request.method == 'POST':
+        data = request.data
+        flag, serializer = ProdutoQuantidadeSerializer.create_produto_quantidade(pedido, data)
+        if flag:
+            return JsonResponse({'produto_quantidade': serializer}, safe=False, status=status.HTTP_201_CREATED)
+        return HttpResponse(serializer, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT', 'DELETE'])
+def produto_quantidade_detail(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+
+    if request.method == 'PUT':
         produto_quantidade = [ProdutoQuantidade.objects.get(pk=pk['id']) for pk in request.data]
         validate, serializer = ProdutoQuantidadeSerializer.update_many_produto_quantidade(produto_quantidade, request.data)
         if validate:
-            return JsonResponse({'produto-quntidade': serializer}, safe=False, status=status.HTTP_200_OK)
+            return JsonResponse({'produto_quntidade': serializer}, safe=False, status=status.HTTP_200_OK)
         return JsonResponse(SerializerUtils.combine_serializer_errors(serializer.errors), safe=False, status=status)
 
-
+    if request.method == 'DELETE':
+        return JsonResponse(status=status.HTTP_204_NO_CONTENT)
 

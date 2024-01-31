@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from utils.SerializerUtils import combine_serializer_errors
 
 
 class MesaSerializer(serializers.ModelSerializer):
@@ -30,12 +31,25 @@ class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
         model = ProdutoQuantidade
         fields = '__all__'
 
+
     @staticmethod
+    # VALIDA TODOS OS JSON DE UMA LISTA
     def __validate_produto_quantidade(quantidade):
-        serializers = [ProdutoQuantidadeSerializer(item) for item in quantidade]
+        serializers = [ProdutoQuantidadeSerializer(data=item) for item in quantidade]
         validade = [item.is_valid() for item in serializers]
-        validate = True if all(validade) else False
-        return validate
+        validate = all(validade)
+        return validate, serializers
+
+    @staticmethod
+    def create_produto_quantidade(pedido, produto_quantidade):
+        flag, serializers = ProdutoQuantidadeSerializer.__validate_produto_quantidade(produto_quantidade)
+        if flag:
+            for serializer in serializers:
+                serializer.save()
+                pedido.produtos_quantidades.add(ProdutoQuantidade.objects.get(pk=serializer.data['id']))
+            return flag, [serializer.data for serializer in serializers]
+        return False, combine_serializer_errors(serializers)
+
 
     @staticmethod
     def update_many_produto_quantidade(produto_quantide, produto_quantidade_data):
