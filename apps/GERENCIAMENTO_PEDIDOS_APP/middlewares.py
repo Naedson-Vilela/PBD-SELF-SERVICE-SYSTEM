@@ -16,7 +16,6 @@ class JWTAuthMiddleware:
                 f'{settings.AUTH_MICROSERVICE_URL}/validate/',
                 headers={'Authorization': f'Bearer {token}'}
             )
-            print(response)
 
             if response.status_code == 200:
                 # Token é válido, permita que a solicitação continue

@@ -127,6 +127,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-AUTH_MICROSERVICE_URL = 'http://127.0.0.1:8080/account/api/login/'
+AUTH_MICROSERVICE_URL = 'http://127.0.0.1:8080/account/api/login'
 
 

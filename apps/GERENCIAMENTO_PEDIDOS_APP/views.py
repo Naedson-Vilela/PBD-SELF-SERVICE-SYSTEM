@@ -60,7 +60,6 @@ def produto_detail(request, pk):
         return HttpResponse(status=204)
 
 
-@login_required
 @api_view(['GET', 'POST'])
 def mesa_list_create(request):
     if request.method == 'GET':
