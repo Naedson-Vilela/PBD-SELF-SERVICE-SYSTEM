@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.GERENCIAMENTO_PEDIDOS_APP.middlewares.JWTAuthMiddleware'
 ]
 
 ROOT_URLCONF = 'SYS_SELFSERVICE.urls'
@@ -124,3 +125,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+AUTH_MICROSERVICE_URL = 'http://127.0.0.1:8080/account/api/login/'
+
+

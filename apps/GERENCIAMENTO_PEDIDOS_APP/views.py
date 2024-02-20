@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from rest_framework import status, response, schemas
@@ -12,7 +13,6 @@ from .serializers import (PedidoSerializer,
                           MesaSerializer,
                           ProdutoSerializer)
 
-from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 @api_view(['GET', 'POST'])
 def produto_list_create(request):
@@ -60,6 +60,7 @@ def produto_detail(request, pk):
         return HttpResponse(status=204)
 
 
+@login_required
 @api_view(['GET', 'POST'])
 def mesa_list_create(request):
     if request.method == 'GET':

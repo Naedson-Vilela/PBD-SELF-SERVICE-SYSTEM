@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.10 (PBD-SELF-SERVICE-SYSTEM-WITH-TOKEN-AUTHENTICATION)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (PBD-SELF-SERVICE-SYSTEM-WITH-TOKEN-AUTHENTICATION)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (PBD-SELF-SERVICE-SYSTEM) (2)" project-jdk-type="Python SDK" />
 </project>
