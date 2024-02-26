@@ -20,9 +20,9 @@ class JWTAuthMiddleware:
             if response.status_code == 200:
                 # Token é válido, permita que a solicitação continue
                 return self.get_response(request)
-            else:
-                # Token é inválido, retorne uma resposta de erro de autenticação
-                return JsonResponse({'error': 'Token de autenticação inválido'}, status=401)
-        else:
-            # Cabeçalho Authorization não está presente na solicitação, retorne uma resposta de erro de autenticação
-            return JsonResponse({'error': 'Cabeçalho de autorização ausente'}, status=401)
+
+            # Token é inválido, retorne uma resposta de erro de autenticação
+            return JsonResponse({'error': 'Token de autenticação inválido'}, status=401)
+
+        # Cabeçalho Authorization não está presente na solicitação, retorne uma resposta de erro de autenticação
+        return JsonResponse({'error': 'Cabeçalho de autorização ausente'}, status=401)

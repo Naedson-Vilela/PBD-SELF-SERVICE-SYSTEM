@@ -7,9 +7,8 @@ class MesaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mesa
-        fields = (
-            '__all__'
-        )
+        fields = '__all__'
+
 
 
 class CategoriaSerializer(serializers.ModelSerializer):
@@ -20,10 +19,10 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
-
+    categoria = CategoriaSerializer(source='categoria_id')
     class Meta:
         model = Produto
-        fields = '__all__'
+        fields = ['id', 'imagem', 'nome_produto', 'preco', 'descricao', 'is_cozinha', 'categoria']
 
 
 class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
@@ -68,10 +67,12 @@ class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
 class PedidoSerializer(serializers.ModelSerializer):
 
     produtos_quantidades = ProdutoQuantidadeSerializer(many=True, read_only=True)
+    mesa = MesaSerializer(source='mesa_id')
 
     class Meta:
+
         model = Pedido
-        fields = '__all__'
+        fields = ['id', 'produtos_quantidades', 'nome_cliente', 'data_hora', 'status_pedido', 'mesa']
 
     @staticmethod
     def criar_pedido_produtos_quantidades(pedido, produto_quantidade):
