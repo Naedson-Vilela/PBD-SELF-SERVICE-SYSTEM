@@ -18,18 +18,28 @@ class CategoriaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProdutoSerializer(serializers.ModelSerializer):
+class ProdutoSerializerList(serializers.ModelSerializer):
     categoria = CategoriaSerializer(source='categoria_id')
     class Meta:
         model = Produto
         fields = ['id', 'imagem', 'nome_produto', 'preco', 'descricao', 'is_cozinha', 'categoria']
+class ProdutoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Produto
+        fields = '__all__'
 
+
+class ProdutoQuantidadeSerializerList(serializers.ModelSerializer):
+    produto = ProdutoSerializerList(source="produto_id")
+
+    class Meta:
+        model = ProdutoQuantidade
+        fields = ["id", "quantidade_produtos", "produto"]
 
 class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProdutoQuantidade
         fields = '__all__'
-
 
     @staticmethod
     # VALIDA TODOS OS JSON DE UMA LISTA
@@ -67,12 +77,11 @@ class ProdutoQuantidadeSerializer(serializers.ModelSerializer):
 class PedidoSerializer(serializers.ModelSerializer):
 
     produtos_quantidades = ProdutoQuantidadeSerializer(many=True, read_only=True)
-    mesa = MesaSerializer(source='mesa_id')
 
     class Meta:
 
         model = Pedido
-        fields = ['id', 'produtos_quantidades', 'nome_cliente', 'data_hora', 'status_pedido', 'mesa']
+        fields = '__all__'
 
     @staticmethod
     def criar_pedido_produtos_quantidades(pedido, produto_quantidade):
@@ -83,3 +92,13 @@ class PedidoSerializer(serializers.ModelSerializer):
         pedidos_quantides = [ProdutoQuantidade.objects.create(**item) for item in produto_quantidade]
         pedido_object.produtos_quantidades.set(pedidos_quantides)
         return PedidoSerializer(pedido, read_only=True)
+
+class PedidoSerializerList(serializers.ModelSerializer):
+
+    produtos_quantidades = ProdutoQuantidadeSerializerList(many=True, read_only=True)
+    mesa = MesaSerializer(source='mesa_id')
+
+    class Meta:
+
+        model = Pedido
+        fields = ['id', 'nome_cliente', 'data_hora', 'status_pedido', 'mesa', 'produtos_quantidades']

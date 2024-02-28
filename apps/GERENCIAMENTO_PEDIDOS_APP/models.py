@@ -54,6 +54,7 @@ class Produto(models.Model):
         return f'{self.nome_produto}'
 
 
+
 class ProdutoQuantidade(models.Model):
 
     produto_id = models.ForeignKey(Produto, related_name='produtos_pedidos', on_delete=models.DO_NOTHING)

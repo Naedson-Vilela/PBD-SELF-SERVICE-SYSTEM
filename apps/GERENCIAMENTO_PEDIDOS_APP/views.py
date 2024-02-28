@@ -1,8 +1,7 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from rest_framework import status, response, schemas
-from rest_framework.decorators import api_view, renderer_classes
+from rest_framework import status
+from rest_framework.decorators import api_view
 from utils import SerializerUtils
 from .models import (Pedido,
                      ProdutoQuantidade,
@@ -11,7 +10,8 @@ from .models import (Pedido,
 from .serializers import (PedidoSerializer,
                           ProdutoQuantidadeSerializer,
                           MesaSerializer,
-                          ProdutoSerializer)
+                          ProdutoSerializer, ProdutoQuantidadeSerializerList, PedidoSerializerList,
+                          ProdutoSerializerList)
 
 
 @api_view(['GET', 'POST'])
@@ -19,7 +19,7 @@ def produto_list_create(request):
 
     if request.method == 'GET':
         produtos = Produto.objects.all()
-        produtos_serializer = ProdutoSerializer(produtos, many=True)
+        produtos_serializer = ProdutoSerializerList(produtos, many=True)
 
         return JsonResponse(produtos_serializer.data, safe=False)
     elif request.method == 'POST':
@@ -44,7 +44,7 @@ def produto_detail(request, pk):
 
 
     if request.method == 'GET':
-        produto_serializer = ProdutoSerializer(produto)
+        produto_serializer = ProdutoSerializerList(produto)
         return JsonResponse(produto_serializer.data)
 
     elif request.method == 'PUT':
@@ -100,7 +100,7 @@ def pedido_list_create(request):
 
     if request.method == 'GET':
         pedidos = Pedido.objects.all()
-        pedido_serializer = PedidoSerializer(pedidos, many=True)
+        pedido_serializer = PedidoSerializerList(pedidos, many=True)
         return JsonResponse(pedido_serializer.data, safe=False)
 
     elif request.method == 'POST':
@@ -120,7 +120,7 @@ def pedido_detail(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
 
     if request.method == 'GET':
-        pedido_serializer = PedidoSerializer(pedido, read_only=True)
+        pedido_serializer = PedidoSerializerList(pedido, read_only=True)
         return JsonResponse(pedido_serializer.data, safe=False)
 
     elif request.method == 'PUT':
@@ -157,7 +157,7 @@ def list_create_produto_quantidades(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
     if request.method == 'GET':
         produto_quantidades = ProdutoQuantidade.objects.filter(pedido=pedido)
-        serializer = ProdutoQuantidadeSerializer(produto_quantidades, many=True)
+        serializer = ProdutoQuantidadeSerializerList(produto_quantidades, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     elif request.method == 'POST':
